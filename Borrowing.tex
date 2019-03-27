@@ -1,0 +1,43 @@
+% !TeX encoding = UTF-8
+% !TeX spellcheck = de_DE
+% !TeX root = ./mainDoc.tex
+
+\section{Method Borrowing}
+
+JavaScript macht es der Programmiererin sehr leicht, eine bestimmte Methode eines Objekts in einem anderen Kontext (das bedeutet mit einem anderen \texttt{this}-Binding) auszuführen. Damit kann eine für ein Objekt entwickelte Methode auf ein anderes Objekt angewendet und so wiederverwendet werden. 
+
+Nach den im vorigen Abschnitt erläuterten Regeln ist eine Methode normalerweise mit dem Objekt, auf dem sie aufgerufen wird, über das implizite \texttt{this} verbunden. JavaScript bietet die eingebauten Funktionen \texttt{call()} und \texttt{apply()} an, mit denen sich das \texttt{this}-Binding bei einem Funktionsaufruf explizit überschreiben lässt. \texttt{call()} und \texttt{apply()} unterscheiden sich lediglich darin, wie die Parameter des Funktionsaufrufs übergeben werden. Bei \texttt{call()} werden sie als Parameterliste angegeben während sie bei \texttt{apply()} als Array übergeben werden.
+Dies wird an einem Beispiel deutlich:
+
+\insertcode{codesnips/callBorrowing.js}{Die Methode \texttt{doStuff()} des Objekts \texttt{notmyobj} wird aufgerufen und explizit per \texttt{call(myobj)} bzw. \texttt{call(myobj)} an ein anderes Objekt gebunden.
+(Beispiel aus \citep{StefanovJavaScriptpatternsbuild2010})}.
+
+Man spricht bei der gezeigten Technik von \emph{method borrowing}, da sich ein Objekt eine Methode eines anderen Objekts ausleiht.
+
+Diese Technik wird sehr häufig angewendet, um Funktionen eingebauter Objekte,  z.~B. des \texttt{Array}-Objekts zu benutzen, obwohl das Objekt, auf dem operiert wird, selber kein Array, sondern nur \emph{array-like} ist. Die innerhalb von Funktionen belegte Variable \texttt{arguments} ist ein solches array-like Objekt (siehe \citep{MozillaDeveloperNetworkargumentsobject}). Um es in ein \emph{echtes} Array umzuwandeln, kann die \texttt{slice()} Methode aus \texttt{Array.prototype} ausgeliehen werden:
+\insertcode{codesnips/toArray.js}{Die Methode \texttt{Array.prototype.slice} wird ausgeliehen und auf das array-like \texttt{arguments} Objekt angewendet.}
+
+Wenn eine Funktion in einer Variable gespeichert werden soll oder als Callback übergeben und später aus einem anderen Kontext heraus aufgerufen wird, so verliert sie ihr \texttt{this}-Binding. \texttt{this} fällt beim Aufruf auf das default-Binding zurück, das im non-strict-Mode auf das \emph{global Object} zeigt und im strict-Mode zu einem Laufzeitfehler führt. Um eine Funktion fest an einen Kontext zu binden, gibt es seit ES5 die Funktion \texttt{Function.prototype.bind()}, die es erlaubt ein festes Objekt als \texttt{this}-Binding und optional weitere Funktionsparameter zu fixieren.
+\insertcode{codesnips/bindExample.js}{\texttt{bind()} zur festen \texttt{this}-Bindung (Beispiel frei nach \citep{StefanovJavaScriptpatternsbuild2010})}
+
+Die aus dem Objekt \texttt{one} geborgte Methode wird zunächst ungebunden in eine Variable gespeichert (l.~12), so dass ihr \texttt{this} beim Aufruf auf das globale Objekt zeigt, das keine Property \texttt{name} besitzt. Per \texttt{call()} kann das \texttt{this}-binding explizit gesetzt werden (l.~14). Optional kann auch die Funktion vor dem Speichern in einer Variablen fest an ein bestimmtes Objekt gebunden (l.~17) und zusätzlich mit festen Funktionsparametern (l.21) versehen werden. Eine derart fest gebundene Funktion kann auch problemlos als Parameter für Callbacks verwendet werden.
+
+
+
+%
+%
+%Wenn einfach eine funktion wieder verwendet werden soll, so macht es JavaScript der Programmiererin leicht:
+%In JS kann jede Funktion mit einem beliebigen Kontext aufgerufen werden. Der Kontext ist dabei das \texttt{this}-Binding. Üblicherweise ist das \texttt{this}-Binding über eine der oben genannten Regeln festgelegt.
+%
+%Es kann jederzeit ein anderer Kontext per explicit-Binding festgelegt werden. Damit können vorhandene Funktionen eines anderen Objekts ausgeliehen werden.
+%
+%Sehr üblich ist das bei eingebauten Funktionen, die aber auf dem aktuellen Objekt nicht über die Prototype-Chain ereichbar sind.
+%
+%Beispiel Array.prototype.slice ist auf \texttt{arguments} nicht verfügbar, da \texttt{arguments}, zwar ein Array-like Object ist, nicht auf die Array-funktionen aus \texttt{Array.prototype} zugreifen kann. (\citep{argumentsobject})
+%
+%Das geht auch bei eigenen Funktionen und Objekten. Hier ein Beispiel aus \citep{BorrowingMethodsJavaScript}:
+%
+%
+%Anstelle von Borrowing ist es bei eigenen Funktionen besser ein Modul anzulegen und die Funktion von dort zu importieren. \todoCite{\citep[p.86]{ElliottProgrammingJavaScriptapplications2014}}
+%
+

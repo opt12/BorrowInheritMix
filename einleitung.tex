@@ -1,0 +1,92 @@
+% !TeX encoding = UTF-8
+% !TeX spellcheck = de_DE
+% !TeX root = ./mainDoc.tex
+
+\section{Einleitung}
+
+Durch die in allen Webbrowsern vorhandene Implementierung einer JavaScript-Lauf\-zeit\-um\-ge\-bung ist diese Sprache das Mittel der Wahl, um eine wirklich plattformunabhängige Implementierung von Applikationen zu realisieren. Auf jedem Gerät, auf dem ein moderner Webbrowser verfügbar ist, kann eine in JavaScript geschriebene Applikation ausgeführt werden. Durch die Einbettung des Codes in Webseiten ist es für die Benutzerin nicht notwendig, eine solche Applikation erst mühsam zu installieren. Es ist ausreichend die entsprechende Webseite anzusteuern, damit das Programm abläuft.
+
+Seit einigen Jahren hat sich die Sprache aus ihrem angestammten Feld, nämlich Webapplikationen mit einfach zu bedienenden Benutzeroberflächen, weiterentwickelt und wird zunehmend auch im Server-Umfeld oder sogar in embedded Applikationen auf Mikrocontrollern eingesetzt. Mit JavaScript lässt sich heute die vollständige Applikationsentwicklung von der Serverapplikation inklusive Datenhaltung über die Netzwerkkommunikation bis hin zur Benutzeroberfläche im Browser der Anwenderin abdecken. 
+
+Diese Breite an Anwendungsmöglichkeiten und die allgegenwärtige Verfügbarkeit von Laufzeitumgebungen und Entwicklungswerkzeugen hat dazu geführt, dass heute kaum eine Programmiererin an JavaScript vorbei kommt.
+
+JavaScript unterstützt den Einstieg für Benutzerinnen, die diese Sprache nur selten einsetzen durch eine einfache, an C und Java angelehnte Syntax und eine objektorientierte Struktur. Zusammen mit den dynamischen Eigenschaften und dem Verzicht auf strenge Typisierung kommen die meisten Einsteigerinnen sehr schnell zu ersten brauchbaren Ergebnissen.
+
+Sobald man JavaScript nicht mehr nur gelegentlich für Mini-Anwendungen benutzt, sondern größere Anwendungen damit entwickeln möchte, führt jedoch --wie in jeder anderen Programmiersprache auch-- kein Weg daran vorbei, sich intensiv mit der Sprache auseinanderzusetzen und deren Eigenheiten zu lernen und zu verstehen.
+
+Der größte Unterschied von JavaScript zu vielen anderen landläufig bekannten Programmiersprachen liegt darin, dass JavaScript zwar objektorientiert ist, dabei aber auf Klassen im Sprachkern verzichtet.\footnote{
+Seit dem Sprachstandard ECMAScript 6 (ES6) wurden in JavaScript klassenähnliche Konstrukte und eine klassenähnliche Syntax eingeführt. Diese bauen intern jedoch auch auf der prototypischen Objekt\-orien\-tier\-ung auf, die JavaScript zu eigen ist. Letztendlich handelt es sich bei den in ES6 eingeführten Klassen (fast) nur um syntaktischen Zucker, der die Einstiegshürde für Umsteigerinnen aus klassischen Sprachen senken soll.
+}
+Durch den Verzicht auf Klassen als Grundlage der Objektdefinition lassen sich viele bekannte Muster aus der klassischen\footnote{
+Im Weiteren wird meist der Begriff \emph{klassisch} anstelle von \emph{klassenbasiert} verwendet, da in der englischsprachigen Literatur meist von \emph{classical} und nicht von \emph{class based} die Rede ist. Diese Begrifflichkeit soll hier übernommen werden. Damit ist auf keinen Fall \emph{klassisch} im Sinne von \emph{althergebracht} gemeint. 
+} 
+Objektorientierung nicht eins-zu-eins auf JavaScript übertragen. Im Einzelfall kann das dazu führen, dass Muster in Javascript etwas komplizierter werden, während in vielen anderen Fällen die Objekterzeugung ohne Klassendefinition große Vorteile bringt. Im Einzelfall ist daher zu untersuchen, wie bestimmte Muster nach JavaScript übertragen werden können, oder ob es in JavaScript nicht andere, bessere Möglichkeiten zur Problemlösung gibt.
+
+\skippingparagraph
+
+In der vorliegenden Arbeit soll ein Überblick darüber gegeben werden, wie, aufbauend auf dem JavaScript Objektsystem, eine Code-Wiederverwendung stattfinden kann. Es wird zunächst ein Überblick gegeben, wie Objekte ohne Klassendefinitionen in JavaScript erzeugt werden. Darauf aufbauend werden verschiedene Methoden vorgestellt, wie Verhalten, das für ein Objekt entwickelt wurde, auch für andere und andersartige Objekte wieder verwendet werden kann. Die betrachteten Techniken sind:
+\begin{itemize}
+	\item Method Borrowing
+	\item prototypische Vererbung und Objekt-Mixins
+	\item functional Mixins
+\end{itemize}
+
+Abschließend sollen die gezeigten Techniken kritisch betrachtet und bewertet werden.
+
+\skippingparagraph
+
+{\smaller
+Da es in dieser Arbeit vor allem darum gehen soll, wie sich die anzuwendenden Techniken der Code-Wiederverwendung in einer prototypischen Sprache wie JavaScript von den bekannteren Techniken in klassischen Sprachen unterscheiden, werden die mit ECMAScript 6 (ES6) eingeführten Klassen nicht weiter betrachtet. Eine kurze Zusammenfassung der Kritik an den ES6-Klassen ist in Anhang \ref{keineKlassen} zusammengestellt. Eine kritische Würdigung der ES6-Klassen und ihrer Vor- und Nachteile gäbe genug Stoff für mindestens eine eigenständige Seminararbeit.
+}
+
+
+
+%In heutigen Softwareprojekten ist es essentiell wiederverwendbaren Code zu erstellen. Es ist zu aufwändig und ineffizient, in jedem Projekt sämtlichen Code von Grund auf neu zu entwickeln. Anstelle einer Neuentwicklung für jedes Stück Software ist es dagegen notwendig den Code so zu entwickeln, dass möglichst abgeschlossene Einheiten entstehen, die sich in vielerlei Anwendungsfällen immer wieder verwenden lassen. 
+%
+%Wiederverwendbarer Code ist die Grundlage, die heute übliche Komplexität in Softwareprojekten zu beherrschen. Zur Wiederverwendung von Code gibt es verschiedene klassische Ansätze:
+%\begin{itemize}
+%	\item Verwendung von Libraries
+%	\item Verwendung von Frameworks
+%	\item Verwendung von Vererbung
+%	\item Kopieren von Code
+%	\item \ldots
+%\end{itemize}
+%
+%Die Grundlage aller Programmiertätigkeiten ist die Verwendung von Bibliotheken, in denen fertige Funktionen für immer wiederkehrende aufgaben enthalten sind. Diese Standardaufgaben werden so auf eine höhere Abstraktionsebene gehoben und lassen sich einfach in eigene Softwareprojekte einbinden ohne sich um die Implementierungsdetails der einzelnen Bibliotheksfunktion zu kümmern.
+%
+%Jede Programmiersprache bringt eine Standardbibliothek mit, in der z. B. Aufgaben wie I/O-Funktionen oder auch die Verwaltung von Containerdatenstrukturen ausprogrammiert sind, und mit über ein mehr oder weniger abstraktes Interface einfach in eigene Projekte eingebunden werden können.
+%
+%Frameworks \todo{was sind Frameworks}
+%
+%\skippingparagraph
+
+%Neben diesen Projektübergreifenden Möglichkeiten der Code-Wiederverwendung, die eher als eine Art \emph{globale} Infrastruktur des SW-Ökosystems aufgefasst werden kann, findet regelmäßig auch Code Wiederverwendung im kleineren Maßstab auf Projekt- oder auf Firmenebene statt. In der heutzutage dominant eingesetzten objektorientierten Programmierung werden die \emph{realen} Objekte der Anwendungsdomäne durch SW-Objekte modelliert, denen spezifisches Verhalten einprogrammiert wird. Die Beziehungen der Objekte untereinander werden dabei meist über Vererbung modelliert: ein allgemeines Objekt dient als Elternobjekt für weiter spezialisierte Kindobjekte. Diese erben das Verhalten des Elternobjekts und fügen eigenes spezialisiertes Verhalten hinzu, können dabei jedoch auf alle Eigenschaften und Methoden ihres Elternobjekts zurückgreifen. Der Code des Elternobjekts wird von den Kindobjekten wieder verwendet. Die Kindobjekte haben dabei auch die Möglichkeit allgemeines Verhalten des Elternobjekts abzuändern und zu spezialisieren.
+%
+%Bei Objekten und Verhalten aus der Anwendungsdomäne ergibt sich dabei oft eine in sich logische Vererbungshierarchie, die natürlich auf die SW-Objekte projiziert werden kann. Klassische Beispiele dazu stammen aus der Tierwelt:
+%Ein \texttt{Tier} als allgemeines Elternobjekt muss \texttt{fressen()} und \texttt{lautGeben()}. Ein daraus abgeleitetes \texttt{Säugetier} muss zusätzlich \texttt{atmen()}. In einer weiteren Spezialisierungsstufe werden aus dem \texttt{Säugetier} ein \texttt{Hase} und ein \texttt{Löwe} abgeleitet. Während diese beiden speziellen Vertreter von Säugetieren immer noch beide \texttt{atmen()} können, so muss das Verhalten \texttt{fressen()} und \texttt{lautGeben()} für jedes Objekt spezialisiert werden.
+%
+%
+%Während diese Vererbungshierarchien, die ausgehend von einem Top-Objekt immer weiter spezialisierte Unter-Objekte ableiten schon eine immense Erleichterung für die Softwareentwicklung darstellen stößt diese Art der Verhaltenswiederverwendung auch recht schnell an ihre Grenzen. Insbesondere, wenn es sich nicht mehr um Verhalten aus der ursprünglichen Domäne (z.B. Modellierung der Tierwelt eines Zoos) handelt, sondern um sogenannte \emph{CrossCutting-Concerns}, die aus anderen Domänen eingestreut werden.
+%
+%So hat ein Tier in einem Zoo möglicherweise eine \texttt{Inventarnummer}. Das gilt aber auch für \texttt{Computer} und \texttt{Traktoren} des Zoos. Nun könnte man natürlich auf der obersten Ebene \texttt{Tier} eine Property \texttt{Inventarnummer} mit dem zugehörigen Verhalten einführen, dieser Software-Code ließe sich dann aber nicht mehr in auf \texttt{Computer} und \texttt{Traktoren} anwenden. 
+%
+%In manchen Sprachen wurde zur Lösung dieses Problem sogenannte \emph{Mehrfachvererbung} eingeführt, so dass ein Objekt mehrere Eltern haben kann. In diesem Fall könnte also ein neues Elternobjekt \texttt{InventoryItem} eingeführt werden, das als zusätzliches Elternobjekt in die Vererbungshierarchien von \texttt{Traktor}, \texttt{Computer} und \texttt{Löwe} eingebunden wird. Ein \texttt{Hase} und ein \texttt{Radiergummi} dagegen werden üblicherweise nicht einzeln inventarisiert und bekommen daher \texttt{InventoryObject} nicht als zusätzliches Elternteil hinzugefügt. 
+%
+%Die meisten neueren Sprachen bieten jedoch keine Mehrfachvererbung an. Es müssen also andere Wege gefunden werden bestimmte Objekte mit zusätzlichem Verhalten anzureichern ohne dieses Verhalten für jedes Objekt neu zu entwickeln oder den immer gleichen Code zu kopieren.
+%
+%\skippingparagraph
+%
+%In der vorliegenden Seminararbeit sollen zwei Lösungsansätze am Beispiel der Sprache JavaScript vorgestellt und miteinander verglichen werden:
+%\begin{itemize}
+%	\item Mixins
+%	\item Higher Order Functions in Form von Decorators
+%\end{itemize}
+%
+%
+%Da JavaScript (JS) auf Prototypen aufbaut und sich damit von den meisten klassenorientierten objektorientierten Sprachen stark unterschiedet, wird in einem ersten Kapitel darauf eingegangen, wie Objekte in JS entstehen, wie sie zu ihrem Verhalten kommen und wie Vererbung in JS funktioniert. Nach der Vorstellung dieser Grundlagen soll das Konzept der Mixins vorgestellt werden, bevor aufgezeigt wird, wie man es in JS umsetzen kann. 
+%
+%Da JavaScript neben dem objektorientierten Paradigma auch als funktionale Programmiersprache aufgefasst werden kann, soll als alternativer Lösungsansatz die Verwendung von Higher Order Functions (HOF) vorgestellt werden. Dabei wird insbesondere auch gezeigt, wie durch die mit ES7 eingeführten \emph{Decorators} den Einsatz und die Lesbarkeit verbessern.
+%
+%Zum Abschluss werden die beiden Konzepte miteinander verglichen und es werden die jeweiligen Vor- und Nachteile aufgezeigt.
+%
+

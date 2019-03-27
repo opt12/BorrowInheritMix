@@ -1,0 +1,52 @@
+% !TeX encoding = UTF-8
+% !TeX spellcheck = de_DE
+% !TeX root = ./mainDoc.tex
+
+\section{Kritik und Ausblick}
+
+In den vorangegangenen Kapiteln wurden einige Möglichkeiten vorgestellt, wie sich in JavaScript effektiver Code-Reuse auf Objektebene betreiben lässt. Dazu wurden die Eigenheiten herausgestellt, die Javascript als prototypenbasierte Sprache im Gegensatz zu klassischen OO-Sprachen auszeichnet. 
+
+Die hier vorgestellten Mittel sind alle in der Praxis bewährt und werden eingesetzt. Trotzdem ist auch in JavaScript kein \emph{heiliger Gral} unter den Programmiermustern in Sicht. Die Programmiererin muss vielmehr --wie in jeder anderen Programmiersprache auch-- darauf achten, möglichst viele Methoden zu kennen und zu verstehen. Das schließt auch die Schwächen der Methoden mit ein. Nur so kann in der Programmierpraxis im konkreten Projekt sorgfältig ausgewählt werden, welches Werkzeug für welche Aufgabe geeignet ist. JavaScript bietet besonders viele und flexible Möglichkeiten an. 
+
+
+Jede der vorgestellten Methoden hat ihre Stärken und Schwächen. Während die Stärken in der Vorstellung der Muster schon ausreichend herausgestellt wurden, soll nun kritisch hinterfragt werden, welche Schwächen und Defizite man sich mit der Verwendung der einzelnen Muster einkauft.
+
+
+
+%Beim Method-Borrowing muss die Implementierung des Spenderobjekts bekannt sein, und es muss sichergestellt werden, dass diese Implementierung nicht außerhalb der Verantwortung des Projektteams geändert wird. Um eine Methode auszuleihen, muss ein Spenderobjekt verfügbar und zugreifbar sein, selbst wenn es ansonsten nicht für den Programmablauf benötigt wird. Die Programmiererin macht sich explizit von der geliehenen Methode und dem zugehörigen Objekt abhängig. 
+%Daher sollte das Method-Borrowing lediglich auf eingebauten Objekten verwendet werden, die garantiert immer im Laufzeitsystem vorhanden sind und deren Implementierung stabil ist. Selbst bei Method-Borrowing als Ersatz eines "`super-Konstruktor"'-Aufrufs ist Vorsicht geboten und es bietet sich häufig an, eine Factory zu verwenden, die eine explizite Init-Funktion zur Verfügung stellt. Meist ist eine Auslagerung von gemeinsam benutzten Funktionen in Module vorteilhaft, auch wenn das Zielobjekt dann per Parameter injiziert werden muss.
+
+Die Technik des Method Borrowing ist in vielen Fällen verlockend, um auf die Schnelle Code wieder zu verwenden, der für ein anderes Objekt schon entwickelt wurde. Wie gezeigt wurde, bietet JavaScript einfach die Möglichkeit eine bestehende Methode in einem anderen Kontext auszuführen, ohne dabei auf "`schwere"' Techniken wie Vererbung zurückgreifen zu müssen. 
+
+Dabei ist extreme Vorsicht geboten, da sich die Programmiererin, die sich eine Methode ausleiht, auf eine bestimmte Implementierung eines anderen --eigentlich un\-be\-tei\-lig\-ten-- Objekts verlässt. Dadurch entsteht eine sehr enge Kopplung der beiden Objekte ohne dass die Autorin des Spenderobjekts davon etwas weiß. Änderungen in der ursprünglichen Implementierung können zu Verhaltensänderungen führen, die in der Praxis auch bei kleinen Projekten schon nicht mehr abzusehen sind. Diese Art der Code-Wiederverwendung steht dem allgemein anerkannten Ratschlag "`Program to an interface, not an implementation"' (\citep[p. 18]{GoF}) genau entgegen und sollte daher nach Möglichkeit vermieden werden.
+
+Eine Ausnahme bilden die eingebauten Objekte mit ihren Methoden, die sich aller Voraussicht nach nicht ändern und damit nicht nur ein stabiles Interface bieten, sondern auch eine stabile Implementierung. %Eine andere Möglichkeit besteht darin, das Method Borrowing lediglich auf speziell dafür angelegte Utility-Objekte zu beschränken, deren Implementierung genau dokumentiert ist. Wenn diese Objekte außer dem Sammeln von Hilfsfunktionen keinem anderen Zweck dienen, so ist die Wahrscheinlichkeit einer Implementierungsänderung deutlich verringert.
+
+Funktionen die lediglich als wiederverwendbare Utilities dienen, sollten nach Möglichkeit in ES6-Modulen implementiert werden. Diese bieten ein wohldefiniertes Interface und können auch per Namespacing sauber vom eigenen Quelltext getrennt werden. Wenn sie den Objektstatus verändern oder lesen sollen, so ist es zu empfehlen, darauf nicht über das implizite \texttt{this}-Binding zuzugreifen, sondern das Objekt explizit als Parameter zu übergeben.
+Details zu ES6-Modulen finden sich z. B. in \citep[§4]{ElliottProgrammingJavaScriptapplications2014}. Darauf soll in dieser Arbeit nicht weiter eingegangen werden.
+%
+
+\skippingparagraph
+
+Bei der prototypischen Vererbung gilt das Gleiche wie bei der klassischen Vererbung. Es wird eine sehr enge Kopplung zwischen erbendem und vererbendem Objekt hergestellt. Das erbende Objekt benötigt intime Kenntnisse über die Implementierung des vererbenden Objekts. Damit hat die prototypische Vererbung dasselbe Fragile-Base-Class Problem wie die klassische Vererbung. Auch in Bezug auf den \emph{richtigen} Aufbau der Vererbungshierarchien unterscheiden sich klassische und prototypische Vererbung nicht. Nach einer Weile der Benutzung erweist sich schlussendlich jede Hierarchie als falsch. Bei der prototypischen Vererbung per Delegation entlang der Prototype-Chain kommen noch die, schon angesprochenen, Eigenheiten hinzu, wenn eine objektwertige Property benutzt wird, die aufgrund ihrer Lage in der Kette von mehreren Objekten erreicht wird.
+
+\skippingparagraph
+
+Das Object-Mixin Pattern addressiert die Probleme, die durch fehlende Mehrfachvererbung und die dadurch geforderte streng baumartige Objekthierarchie entsteht. Das Problem, dass alle beteiligten Entwickler die Implementierungsdetails aller verwendeten Mixins kennen müssen, wird jedoch eher verstärkt. Es kommen mit der Anzahl der verwendeten Mixins immer mehr (teils implizite) Abhängigkeiten in den Code, die kaum mehr zu überblicken sind. Dabei kann es zu Abhängigkeiten in alle Richtungen kommen: Das Empfängerobjekt ist anhängig von der Implementierung durch ein Mixin. Gleichzeitig muss das Mixin sich auf bestimmte Implementierungsdetails des Empfängerobjekts verlassen. Die Abhängigkeiten können sogar zwischen verschiedenen Mixins entstehen, die gemeinsam auf einem Empfängerobjekt benutzt werden. Durch die von Mixins realisierten \emph{many-to-many}-Beziehungen wird das Fragile-Base-Class-Problem potenziert. Eindrücklich nachlesen lässt sich das in diversen Blogposts, die, mit Praxisbeispielen untermauert, davor warnen, Mixins im Übermaß einzusetzen. (Siehe dazu z.~B. \citep{AbramovMixinsAreDead2015a} und \citep{BraithwaiteWhyAreMixins2016}.) Aus diesen Gründen hat Facebook 2016 bekannt gegeben, dass die in früheren Versionen von React üblichen Mixins in Zukunft nicht mehr eingesetzt werden sollen und aus dem React-Interface verschwinden werden (\citep{AbramovMixinsConsideredHarmful2016}).
+
+\skippingparagraph
+
+Functional Mixins sind zwar eleganter in der Anwendung, haben aber sehr ähnliche Probleme wie Object-Mixins. Ihr großer Vorteil liegt darin, dass die Kapselung privater Daten sehr viel einfacher realisiert werden kann. Dadurch wird  die Oberfläche der Empfängerobjekte nicht so stark vergrößert und es treten weniger Probleme mit impliziten Abhängigkeiten auf. Das Interface lässt sich klarer definieren, da lediglich die eigentliche Mixin-Funktionalität über zusätzliche Properties dem Empfängerobjekt zugefügt wird, während interne Properties und Hilfsfunktionen in der Closure der Mixin-Funktion gekapselt bleiben. Die Problematik der many-to-many-Beziehungen bei Anwendung mehrerer Mixins auf ein Objekt wird dadurch jedoch nicht aufgelöst. 
+
+\skippingparagraph
+
+Da es keinen \emph{heiligen Gral} der Code-Reuse Muster gibt, liegt die Verantwortung zur Auswahl des jeweils richtigen Musters bei der Programmiererin. Sie muss ihren Werkzeugkasten gut bestücken und von Fall zu Fall auswählen, welche der bereitstehenden Methoden sinnvoll angewandt werden können. Neben dem allgemeinen "`Favour object composition over class inheritance."' \citep[p. 20]{GoF} ist der Ratschlag von Eric Elliott ein wenig konkreter:
+
+\begin{quote}
+Start with the simplest implementation and move to more complex implementations only
+as required:
+Functions > objects > factory functions > functional mixins > classes 
+\citep{ElliottFunctionalMixins2017}
+\end{quote}
+
+Insbesondere der Blick auf Funktionen lohnt sich in JavaScript noch mehr, als in vielen anderen Sprachen. Durch die Möglichkeiten der funktionalen Programmierung und den Einsatz von \emph{Higher Order Functions} lassen sich viele Probleme sehr einfach und präzise lösen, die in nicht-funktionalen Sprachen einigen Aufwand erfordern. Doch das ist eine weitere Seminararbeit.

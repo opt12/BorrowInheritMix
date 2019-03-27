@@ -1,0 +1,202 @@
+% !TeX encoding = UTF-8
+% !TeX spellcheck = de_DE
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Arsclassica Article
+% LaTeX Template
+% Version 1.1 (10/6/14)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% Original author:
+% Lorenzo Pantieri (http://www.lorenzopantieri.net) with extensive modifications by:
+% Vel (vel@latextemplates.com)
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[
+11pt, % Main document font size
+a4paper, % Paper type, use 'letterpaper' for US Letter paper
+oneside, % One page layout (no page indentation)
+%twoside, % Two page layout (page indentation for binding and different headers)
+pdfspacing, % Makes use of pdftex’ letter spacing capabilities via the microtype package
+headinclude,
+%footinclude, % Extra spacing for the header and footer
+BCOR=5mm, % Binding correction
+ngerman, %set document to German
+bibliography=totoc,
+abstract=on,
+]{scrartcl}
+%{scrartcl}
+
+\input{structure.tex} % Include the structure.tex file which specified the document structure and layout
+
+\hyphenation{Java-Script} % Specify custom hyphenation points in words with dashes where you would like hyphenation to occur, or alternatively, don't put any dashes in a word to stop hyphenation altogether
+
+%----------------------------------------------------------------------------------------
+%	TITLE AND AUTHOR(S)
+%----------------------------------------------------------------------------------------
+\selectlanguage{ngerman}
+	
+\subtitle{ %\normalfont
+{Seminararbeit im Fach Informatik \\
+Kursnummer 1919 im WiSe 18/19
+an der FernUniversität Hagen}}
+
+\title{ %\normalfont
+{Borrow - Inherit - Mix\\
+Code-Wiederverwendung in JavaScript}} % The article title
+
+
+\author{Felix Eckstein*} % The article author(s) - author affiliations need to be specified in the AUTHOR AFFILIATIONS block
+
+
+%----------------------------------------------------------------------------------------
+%	AUTHOR AFFILIATIONS
+%----------------------------------------------------------------------------------------
+
+%\affil[*]{Student im Master of Science Informatik, FernUniversität Hagen, Matr.-\#: 8161569, \href{mailto:felix.eckstein@gmx.de}{felix.eckstein@gmx.de}}
+
+
+\date{WiSe 2018/19} % An optional date to appear under the author(s)
+
+%----------------------------------------------------------------------------------------
+
+\begin{document}
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+% % comment this out for digital distribution
+%\hypersetup{hidelinks}
+	
+%----------------------------------------------------------------------------------------
+%	HEADERS
+%----------------------------------------------------------------------------------------
+
+\renewcommand{\sectionmark}[1]{\markright{\spacedlowsmallcaps{#1}}} % The header for all pages (oneside) or for even pages (twoside)
+%\renewcommand{\subsectionmark}[1]{\markright{\thesubsection~#1}} % Uncomment when using the twoside option - this modifies the header on odd pages
+\lehead{\mbox{\llap{\small\thepage\kern1em\color{halfgray} \vline}\color{halfgray}\hspace{0.5em}\rightmark\hfil}} % The header style
+
+\pagestyle{scrheadings} % Enable the headers specified in this block
+
+%----------------------------------------------------------------------------------------
+%	TABLE OF CONTENTS & LISTS OF FIGURES AND TABLES
+%----------------------------------------------------------------------------------------
+\setcounter{page}{1}
+\pagenumbering{roman}
+\maketitle % Print the title/author/date block
+
+\vspace*{\stretch{1}}
+\noindent Betreuerin: Dr.\ Daniela Keller \\
+Lehrgebiet Programmiersysteme \\
+Fachbereich Informatik \\
+\vfil\null
+
+
+\setcounter{tocdepth}{2} % Set the depth of the table of contents to show sections and subsections only
+
+{\let\thefootnote\relax\footnotetext{* \textit{Student im Master of Science Informatik an der FernUniversität Hagen,\protect\\Matr.-\#: 8161569, \href{mailto:eckstein@embedded-engineering.de}{eckstein@embedded-engineering.de}}}}
+
+\selectlanguage{ngerman}
+
+%----------------------------------------------------------------------------------------
+%	ABSTRACT
+%----------------------------------------------------------------------------------------
+%{
+%\clearpage
+%\begin{otherlanguage}{english}
+%\pagestyle{headings}
+%\markright{\smaller  Abstract}
+%
+%\begin{abstract}
+%
+%	\input{abstract.tex}
+%	
+%\end{abstract}
+%\end{otherlanguage}
+%
+%}
+
+\cleardoublepage
+
+\tableofcontents % Print the table of contents
+
+%\listoffigures % Print the list of figures
+
+%\listoftables % Print the list of tables
+
+%\lstlistoflistings
+
+%\listofsymbols
+
+%----------------------------------------------------------------------------------------
+
+\cleardoublepage % Start the article content on the second page, remove this if you have a longer abstract that goes onto the second page
+
+%----------------------------------------------------------------------------------------
+%	INTRODUCTION
+%----------------------------------------------------------------------------------------
+\setcounter{page}{1}
+\pagenumbering{arabic}
+
+\counterwithin{figure}{section}
+\counterwithin{lstlisting}{section}
+\counterwithin{table}{section}
+
+
+
+\input{einleitung.tex}
+
+\input{JSBasics.tex}
+
+\input{Borrowing.tex}
+
+\input{vererbung.tex}
+
+\input{functionalMixins.tex}
+
+\input{kritikAusblick.tex}
+
+
+%----------------------------------------------------------------------------------------
+%	BIBLIOGRAPHY
+%----------------------------------------------------------------------------------------
+
+\cleardoublepage
+
+\renewcommand{\refname}{\spacedlowsmallcaps{References}} % For modifying the bibliography heading
+
+\renewcommand{\refname}{Literatur} 
+
+\bibliographystyle{dinat}
+%\bibliographystyle{abbrvnat}
+
+\bibliography{literatur} % The file containing the bibliography
+
+%----------------------------------------------------------------------------------------
+
+\cleardoublepage
+
+\appendix
+
+\newcommand{\appendixpagenumbering}{
+	\break
+	\pagenumbering{arabic}
+	\renewcommand{\thepage}{\thesection-\arabic{page}}
+}
+
+\appendixpagenumbering
+
+\counterwithin{figure}{section}
+\counterwithin{lstlisting}{section}
+\counterwithin{table}{section}
+
+\input{appendix.tex}
+
+\end{document}

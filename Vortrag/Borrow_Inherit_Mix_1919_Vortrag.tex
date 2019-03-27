@@ -1,0 +1,1105 @@
+% !TeX spellcheck = de_DE
+% $Header$
+
+\documentclass[xcolor=dvipsnames, aspectratio=169]{beamer} %xcolor=dvipsnames
+%\documentclass[xcolor=dvipsnames]{beamer} %xcolor=dvipsnames%\documentclass[xcolor=dvipsnames, handout]{beamer} %xcolor=dvipsnames
+
+\usepackage{pgfpages}
+
+\mode<presentation>
+{
+	\usetheme{PaloAlto}
+	\usecolortheme[named=TealBlue]{structure}
+	
+	\setbeamercovered{transparent}
+	% or whatever (possibly just delete it)
+%	\setbeameroption{show notes} % un-comment to see the notes
+	\setbeameroption{show notes on second screen=right}
+%	Simply call dspdfviewer /path/to/your/presentation.pdf to start. If you start dspdfviewer without a command-line parameter, it will use a file-open-dialog-window to ask you for a PDF file.
+}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% This LaTeX Beamer file is based on the solution template for:
+
+% - Giving a talk on some subject.
+% - The talk is between 15min and 45min long.
+% - Style is ornate.
+
+% Copyright 2004 by Till Tantau <tantau@users.sourceforge.net>.
+%
+% In principle, this file can be redistributed and/or modified under
+% the terms of the GNU Public License, version 2.
+%
+% However, this file is supposed to be a template to be modified
+% for your own needs. For this reason, if you use this file as a
+% template and not specifically distribute it as part of a another
+% package/program, I grant the extra permission to freely copy and
+% modify this file as you see fit and even to delete this copyright
+% notice. 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage[ngerman]{babel}
+% or whatever
+
+\usepackage[latin1]{inputenc}
+% or whatever
+
+\usepackage{times}
+\usepackage[T1]{fontenc}
+
+\input{structure.tex} % Include the structure.tex file which specified the document structure and layout
+
+
+% Or whatever. Note that the encoding and the font should match. If T1
+% does not look nice, try deleting the line with the fontenc.
+
+\title[Borrow -- Inherit -- Mix] % (optional, use only with long paper titles)
+{Borrow -- Inherit -- Mix: \\
+	Code-Wiederverwendung in JavaScript}
+
+\author[] % (optional, use only with lots of authors)
+{Felix~Eckstein}
+% - Use the \inst{?} command only if the authors have different
+%   affiliation.
+
+\institute[HannoverJS] % (optional, but mostly needed)
+{
+	Student im Master Informatik
+}
+  
+% - Use the \inst command only if there are several affiliations.
+% - Keep it simple, no one is interested in your street address.
+
+\date[] % (optional)
+{Talk im Rahmen von HannoverJS\\
+26. März 2019}
+
+\subject{Talks}
+% This is only inserted into the PDF information catalog. Can be left
+% out. 
+
+
+
+% If you have a file called "university-logo-filename.xxx", where xxx
+% is a graphic format that can be processed by latex or pdflatex,
+% resp., then you can add a logo as follows:
+
+ \pgfdeclareimage[height=1cm]{university-logo}{images/HannoverJs.png}
+%  \pgfdeclareimage[height=1cm]{university-logo}{images/UniHagen.png}
+ \logo{\pgfuseimage{university-logo}}
+
+
+
+% Delete this, if you do not want the table of contents to pop up at
+% the beginning of each subsection:
+\AtBeginSection[]
+{
+  \begin{frame}<beamer>{Outline}
+    \tableofcontents[currentsection]%,currentsubsection]
+  \end{frame}
+}
+
+\begin{document}
+
+\begin{frame}{Disclaimer}
+
+	Dies ist der Vortrag zum Seminar \\
+	``1919 -- Seminar Moderne Programmiertechniken und''\\
+	im Wintersemester 2018/2019 an der FernUniversität Hagen.
+	
+	Es ist die Präsentation der Ergebnisse aus der Seminararbeit mit dem Titel 
+	``Borrow -- Inherit -- Mix: 
+	Code-Wiederverwendung in JavaScript''.
+	\skippingparagraph
+	
+	Eine etwas ausführlichere Version des Vortrags wurde im Rahmen des \href{https://hannoverjs.de/}{HannoverJS-User Group} Meetings am 26.3.2019 vorgestellt.
+	
+	Diese ausführlichere Version ist zusammen mit der Seminararbeit verfügbar unter\\
+	\url{https://github.com/opt12/BorrowInheritMix} \\
+	Es gilt die Lizenz: \\
+	\href{https://creativecommons.org/licenses/by-nc-sa/4.0/}{Creative Commons Attribution Share Alike 4.0}
+
+	
+\end{frame}
+
+
+\begin{frame}
+  \titlepage
+	\note{
+		\begin{itemize}
+			\item Wer von euch programmiert in JavaScript?
+			\item Wer von Euch ist der Meinung, dass JavaScript eine ernstzunehmende Programmiersprache ist?
+			\item 
+			\item Es ist inzwischen eine richtige Sprache
+			\item wir betrachten einige Features, die Programmieren \emph{im Großen} ermöglichen
+			\item 
+			\item Javascript ist --im Gegensatz zu vielen anderen Sprachen-- Prototyp-basiert
+		\end{itemize}
+			
+	}
+\end{frame}
+
+\begin{frame}[noframenumbering]{Outline}
+  	\tableofcontents
+  
+	\note{
+		\tableofcontents
+	}
+\end{frame}
+
+
+% Since this a solution template for a generic talk, very little can
+% be said about how it should be structured. However, the talk length
+% of between 15min and 45min and the theme suggest that you stick to
+% the following rules:  
+
+% - Exactly two or three sections (other than the summary).
+% - At *most* three subsections per section.
+% - Talk about 30s to 2min per frame. So there should be between about
+%   15 and 30 frames, all told.
+
+\setcounter{framenumber}{\value{framenumber}-1}	%no idea why it otherwise skips one page
+\section{Einführung}
+
+\begin{frame} {Code Wiederverwendung}{Überblick (1/2)}
+	\begin{itemize}
+		\item Code Wiederverwendung ist ein zentrales Thema der SW-Entwicklung
+		\item Ohne Wiederverwendung von Code ist die Komplexität nicht beherrschbar
+		\item \emph{globale} Methoden zur Wiederverwendung
+		\begin{itemize}
+			\item Libraries
+			\item Frameworks
+			\item Modulsysteme
+		\end{itemize}
+	\end{itemize}
+
+	Das Augenmerk dieser Arbeit liegt auf \emph{lokalen} Methoden, wie z. B. innerhalb einer Applikation Code Wiederverwendung stattfinden kann.
+
+\note{
+	\begin{itemize}
+		\item Wiederverwendung ist notwendig um die Komplexität zu behrrschen.
+		\item \emph{globale} Methoden zur Wiederverwendung
+		\begin{itemize}
+			\item Libraries
+			\item Frameworks
+			\item Modulsysteme
+		\end{itemize}
+		
+	\end{itemize}
+}
+
+\end{frame}
+
+\begin{frame} {Code Wiederverwendung}{Überblick (2/2)}
+
+Am Beispiel der Sprache JavaScript werden folgende Methoden vorgestellt:
+\begin{itemize}
+	\item Method Borrowing
+	\item (prototypical) Inheritance
+	\item Mixins
+	\item functional Mixins
+\end{itemize}
+
+Von der Betrachtung ausgenommen sind die Methoden der \emph{klassischen} Vererbung, Modulsysteme und Frameworks.
+
+\note{
+	\begin{itemize}
+		\item Die vorgestellten Methoden bauen auf dem \emph{prototypischen} Objektsystem von JS auf
+		\begin{itemize}
+			\item Method Borrowing
+			\item (prototypical) Inheritance
+			\item Mixins
+			\item functional Mixins
+		\end{itemize}
+		\item Diese Methoden betreffen \emph{normale} Programmiererinnen und sind \emph{more leightweight} als Modulsysteme oder Frameworks
+		\item JavaScript Klassen und \emph{klassische} Vererbung werden bewusst aussen vor gelassen, da sie 
+		\begin{itemize}
+			\item sicherlich viele Vorteile haben
+			\item nach wie vor umstritten sind
+			\item letztendlich auch auf die prototypische Struktur von JS abgebildet werden
+		\end{itemize}
+		Außerdem ist die \texttt{klassische} Vererbung weithin bekannt
+	\end{itemize}
+}
+
+\end{frame}
+
+
+\section{JavaScript: Wichtige Grundlagen}
+
+
+\begin{frame}<1-2>{JavaScript: Wichtige Grundlagen}{JavaScript als objektorientierte Sprache}
+\onslide<1>{
+	\begin{itemize}
+		\item JavaScript ist objektorientiert
+		\item JavaScript ist (im Kern) klassenlos
+		\item JavaScript ist prototypenbasiert
+	\end{itemize}
+}
+\onslide<2->{
+	Was ist ein JavaScript-Objekt?
+	\begin{itemize}
+		\item Sammlung von \texttt{key: value}-Paaren
+		\item können primitiven Typ aufnehmen
+		\item können Referenz auf anderes Objekt aufnehmen
+		\item Funktionen sind selber Objekte und damit 1st-Class
+	\end{itemize}
+}
+
+\note{
+	JavaScript ist zwar weit verbreitet, jedoch gibt es immer wieder Missverständnisse bezüglich der Details und Wirkungsweisen
+	
+	Viele Konfusionen entspringen daraus, dass JS als eine der wenigen OO-Sprachen \texttt{nicht} klassenbasiert ist, sondern \emph{prototypenbasiert}
+	
+\only<1>{
+	Um diese Missverständnisse auszuräumen soll das Objektsystem von JS erklärt werden:
+	\begin{itemize}
+		\item Objekterzeugung
+		\item Objekte und Prototypen
+		\item \texttt{this}-Binding
+		\item dynamische Objekte
+	\end{itemize}
+}
+\only<2>{
+	\skippingparagraph
+	Was ist ein JavaScript-Objekt?
+	\begin{itemize}
+		\item Sammlung von \texttt{key: value}-Paaren
+		\item können primitiven Typ aufnehmen
+		\item können Referenz auf anderes Objekt aufnehmen
+		\item Funktionen sind selber Objekte und damit 1st-Class
+	\end{itemize}
+}	
+}
+
+\end{frame}
+\subsection{Objekterzeugung}
+
+%\begin{frame} {JavaScript Objekte}{Was ist ein Objekt}
+%	Ein Objekt in JavaScript ist aufgebaut wie ein \emph{Dictionary}:
+%	\begin{itemize}
+%		\item Sammlung von \texttt{key: value}-Paaren
+%		\item können primitiven Typ aufnehmen
+%		\item können Referenz auf anderes Objekt aufnehmen
+%		\item Funktionen sind selber Objekte und damit 1st-Class
+%	\end{itemize}
+%
+%	\note{
+%		\begin{itemize}
+%			\item 
+%		\end{itemize}
+%	}
+%\end{frame}
+
+
+\begin{frame}<1-5> {Objekterzeugung}{Wie entstehen Objekte in JavaScript?}
+	Vier Möglichkeiten Objekte zu erzeugen:
+	\begin{itemize}[<+->]
+		\item Objektliterale
+		\only<1>{
+			\lstinputlisting[style=JSStyle, linebackgroundcolor={%
+								\btLstHL<1|handout:0>{1,3,8}%
+							}]{codesnips/objectLiteral.js}
+		}
+		\item Konstruktorfunktionen
+		\only<2>{
+		\lstinputlisting[style=JSStyle, linebackgroundcolor={%
+					\btLstHL<2|handout:0>{8}%
+				}]{codesnips/constructorFunction.js}
+		}
+		\item mittels \texttt{Object.create()}
+		\only<3>{
+			\lstinputlisting[style=JSStyle, linebackgroundcolor={%
+					\btLstHL<3|handout:0>{8}%
+				}]{codesnips/objectCreate.js}
+		}
+		\item Factories
+		\only<4>{
+			\lstinputlisting[style=JSStyle, linebackgroundcolor={%
+					\btLstHL<4|handout:0>{10, 2, 6}%
+				}]{codesnips/factory.js}
+		}
+	\end{itemize}
+	
+	\only<5->{}
+	
+	\note{
+		\begin{itemize}
+			\item<1> Objektliterale
+			\only<1>{
+				\item Leeres Objekt kann per \{\} erzeugt werden
+				\item Objekte können einfach durch Angabe der \emph{Dictionary} Einträge spezifiziert werden
+			}
+			\item<2> Konstruktorfunktionen
+			\only<2>{
+				\item Jede funktion kann als Konstruktorfunktion dienen
+				\item Funktion mit \texttt{new} aufgerufen ist Konstruktor und erzeugt neues Objekt
+				\item Wenn Funktion keine explizite Rückgabe hat, dann wird neue erzeugtes Objekt zurückgegeben, \\
+						ansonsten wird neues Objekt weggeschmissen
+			}
+			\item<3> mittels \texttt{Object.create()}
+			\only<3>{
+				\item \texttt{Object.create(proto)} erzeugt neues, leeres Objekt \\
+				und setzt den Prototypen auf übergebenes Objekt \texttt{proto}
+			}
+			\item<4> Factories
+			\only<4>{
+				\item Jede Funktion kann ein irgendwie erzeugtes Objekt zurückgeben und damit als Factory dienen
+				\item Im Beispiel wird ein Objektliteral zurückgegeben
+			}
+
+		\end{itemize}
+	}
+\end{frame}
+
+
+\subsection{Prototype-Chain}
+\begin{frame} {Prototypenbasierte Objektorientierung}{Delegation entlang der Prototype-Chain}
+	\begin{itemize}
+		\item Gleichartige Objekte lassen sich von \emph{Prototypen} ableiten
+		\item Jedes Objekt enthält einen \emph{[[Prototype]]-Slot} in dem es eine Referenz zu seinem Prototyp-Objekt hält
+		\item Daraus ergibt sich eine verkettete Liste, die \emph{Prototype-Chain}
+		\item entlang dieser \emph{Prototype-Chain} erfolgt eine Delegation zum \emph{Property}-Lookup
+		\begin{figure}
+			\includegraphics[width=.8\textwidth]{../images/prototypeChain.png}
+		\end{figure}
+		
+		\item Durch den \emph{Prototyp}-Mechanismus entlang der \emph{Prototype-Chain} lassen sich per Delegation effiziente Vererbungs-Hierarchien aufbauen
+	\end{itemize}
+
+	\note{
+	\begin{itemize}
+		\item \emph{klassische} Objektorientierung basiert auf \emph{Klassen}:
+		\item In der Klassendefinition wird ein Bauplan für ein Objekt definiert
+		\item Ein Objekt wird erzeugt, in dem entsprechend dieses Bauplans eine \emph{materialisierte Objektkopie} erzeugt wird.
+		\item $\nexists$ Objekt ohne Klassendefinition
+	\end{itemize}
+	Javascript ist anders:
+	\begin{itemize}
+		\item JS kann Objekte \emph{out of thin air} erzeugen
+		\item Diese Objekte stehen für sich allein, haben aber eine Referenz auf ihren \emph{Prototypen}
+		\item Da jedes Objekt einen \emph{[[Prototype]]-Slot} hat, entsteht eine einfach verkettete Liste von Objekten
+		\item entlang dieser \emph{Prototype-Chain} erfolgt eine Delegation zum \emph{Property}-Lookup
+	\end{itemize}
+	}
+\end{frame}
+
+\begin{frame} {\texttt{prototypeChain.js}}{live Code Beispiel}
+	\smaller\smaller
+	\lstinputlisting[style=JSStyle, linebackgroundcolor={%
+		\btLstHL<1|handout:0>{11,30,31,14}%
+	}]{../codesnips/prototypeChain.js}
+
+	%Live-Coding Beispiel:
+	%
+	%\texttt{prototypeChain.js}
+	
+	\note{
+		
+		Code Beispiel: \texttt{prototypeChain.js}
+		
+		\begin{itemize}
+			\item \texttt{son} Objekt hat zunächst keine eigenen Props
+			\item \texttt{son} bekommt eigene Props
+			\item \texttt{son.first} wird als eigenen Prop erstellt und überdeckt \texttt{father.first}
+			\item Zuweisung zu \texttt{father.last} beeinflusst auch Ausgaben von \texttt{son.last}, da keine eigenen Prop
+			\item Keys der beiden Objekte wie im Bild dargestellt
+		\end{itemize}
+		
+		\begin{itemize}
+		\item Bei der Zuweisungen auf gemeinsame Properties müssen die Regeln des Shadowing beachtet werden:
+		\begin{itemize}
+			\item Wert-Properties auf dem Prototypen werden bei Zuweisung verdeckt
+			\item Objektreferenzen auf dem Prototypen werden tatsächlich gemeinsam genutzt
+		\end{itemize}
+		\end{itemize}
+	}
+\end{frame}
+
+\subsection{\texttt{this}-Binding}
+\begin{frame}<1-7> {\texttt{this}-Binding}{}
+
+%Eine aufgerufenen Methode muss wissen, auf welches Objekt sie angewendet wird.
+%
+%Das wird über das \texttt{this}-Binding definiert
+
+Das Schlüsselwort \texttt{this} verhält sich in JavaScript subtil anders, als man es von klassischen OO-Sprachen gewohnt ist.
+
+\begin{itemize}[t, <+->]
+	\item<1-> \emph{new binding} -- Aufruf einer Konstruktorfunktion mit \texttt{new}
+	\only<1>{\begin{itemize}
+		\item <1> Ein neues leeres Objekt wird erzeugt
+		\item <1> Der Prototyp-Link wird auf \texttt{constrFn.prototype} gesetzt
+		\item <1> \texttt{this} wird an das neue Objekt gebunden
+		\item <1> Die Konstruktorfunktion wird ausgeführt
+		\item <1> Das neue Objekt wird implizit zurückgegeben
+	\end{itemize}
+	}
+	\item<2-> \emph{explicit binding} -- \texttt{Function.prototype.call()} 
+	\only<2>{\begin{itemize}
+		\item <2> Das \texttt{this}-Binding kann explizit gesetzt werden
+		\item <2> Dazu wird eine Methode aufgerufen über \texttt{method.call(obj, ...args)}
+		\item <2> \texttt{this} wird an das übergebene Objekt \texttt{obj} gebunden
+	\end{itemize}
+	}
+	\item<3-> \emph{implicit binding} -- \texttt{obj.method()}
+	\only<3>{\begin{itemize}
+		\item <3> Wenn eine Methode direkt \emph{auf} einem Objekt aufgerufen wird, so wird \texttt{this} an dieses Objekt gebunden
+		\item <3> Methode muss dazu \emph{nicht} auf diesem Objekt definiert sein
+		\item <3> Eine Referenz ist ausreichend
+		\item <3> Bei Aliasing geht implicit binding verloren
+	\end{itemize}
+	{{\smaller\smaller \lstinputlisting[style=JSStyle, linebackgroundcolor={%
+			\btLstHL<3|handout:0>{10,12}%
+		}]{codesnips/implicitBinding.js}}}
+	}
+	\item<4-> \emph{default binding}
+	\only<4>{\begin{itemize}
+		\item <4> Wenn keine der obigen Bindungen anwendbar ist, wird an das \texttt{global} Objekt gebunden
+		\item <4> Im \emph{strict}-Mode seit ES5 gibt es keine Bindung mehr an \texttt{global}, sondern an \texttt{undefined}
+	\end{itemize}
+	}
+	\item<5-> \emph{lexical binding} -- Arrow-Funktionen in ES6
+	\only<5>{
+	
+	Die neuen Arrow-Funktionen \texttt{=>} in ES6 binden
+		\begin{itemize}
+		\item <5> das lexikalisch umgebende \texttt{this}
+		\item <5> Lexikalische Bindung bezieht sich auf Definitionszeit
+		\item <5> Sind damit besonders geeignet für Callbacks, die ansonsten ihr implizites \texttt{this}-binding verlieren
+	\end{itemize}
+	}
+	\only<6>{
+		{{\smaller\smaller \lstinputlisting[style=JSStyle, linebackgroundcolor={%
+				\btLstHL<6|handout:0>{4,5,6}%
+			}]{codesnips/bindArrowFunction.js}}}
+	}
+\end{itemize}
+	\only<7>{ }
+
+\note{
+	\only<1>{
+		\emph{new binding} -- Aufruf einer Konstruktorfunktion mit \texttt{new}
+		
+		\begin{itemize}
+			\item <1> Ein neues leeres Objekt wird erzeugt
+			\item <1> Der Prototyp-Link wird auf \texttt{consFn.prototype} gesetzt
+			\item <1> \texttt{this} wird an das neue Objekt gebunden
+			\item <1> Die Konstruktorfunktion wird ausgeführt
+			\item <1> Das neue Objekt wird implizit zurückgegeben
+		\end{itemize}
+	}
+	\only<2>{
+		\emph{explicit binding} -- \texttt{Function.prototype.call()} 
+		
+		\begin{itemize}
+			\item <2> Das \texttt{this}-Binding kann explizit gesetzt werden
+			\item <2> Dazu wird eine Methode aufgerufen über \texttt{method.call(obj, ...args)}
+			\item <2> \texttt{this} wird an das übergebene Objekt \texttt{obj} gebunden
+		\end{itemize}
+	}
+	\only<3>{
+		\emph{implicit binding} -- \texttt{obj.method()}
+		
+		\begin{itemize}
+			\item <3> Wenn eine Methode direkt \emph{auf} einem Objekt aufgerufen wird, so wird \texttt{this} an dieses Objekt gebunden
+			\item <3> Methode muss dazu \emph{nicht} auf diesem Objekt definiert sein
+			\item <3> Eine Referenz ist ausreichend
+			\item <3> Bei Aliasing geht implicit binding verloren
+		\end{itemize}
+		{{\smaller\smaller \lstinputlisting[style=JSStyle, linebackgroundcolor={%
+				\btLstHL<3|handout:0>{10,12}%
+			}]{codesnips/implicitBinding.js}}}
+	}
+	\only<4>{
+		\emph{default binding}
+		
+		\begin{itemize}
+			\item <4> Wenn keine der obigen Bindungen anwendbar ist, wird an das \texttt{global} Objekt gebunden
+			\item <4> Im \emph{strict}-Mode seit ES5 gibt es keine Bindung mehr an \texttt{global}, sondern an \texttt{undefined}
+		\end{itemize}
+	}
+	\only<5,6>{
+		\emph{lexical binding} -- Arrow-Funktionen in ES6
+		
+		Die neuen Arrow-Funktionen \texttt{=>} in ES6 binden
+		
+		\begin{itemize}
+			\item <5> das lexikalisch umgebende \texttt{this}
+			\item <5> Lexikalische Bindung bezieht sich auf Definitionszeit
+			\item <5> Sind damit besonders geeignet für Callbacks, die ansonsten ihr implizites \texttt{this}-binding verlieren
+		\end{itemize}
+		{{\smaller\smaller \lstinputlisting[style=JSStyle, linebackgroundcolor={%
+			\btLstHL<6|handout:0>{4,5,6}%
+		}]{codesnips/bindArrowFunction.js}}}
+	}
+}
+
+\end{frame}
+
+\subsection{dynamische Objekte}
+
+\begin{frame} {Dynamische Objekte}{}
+	Ein Objekt in JavaScript ist dynamisch:
+	
+	Zur Laufzeit können
+	\begin{itemize}
+		\item Properties hinzugefügt werden
+		\item Properties gelöscht werden
+		\item Referenzen geändert werden
+	\end{itemize}
+
+	\skippingparagraph
+
+	JavaScript Objekte sind jederzeit veränderbar
+	
+	Damit ist es schwierig den Typ eines Objekts zu bestimmen
+	
+	$\rightarrow$ Duck-Typing: 
+	\begin{quote}
+		if it looks like a duck, and it quacks like a duck, \\
+		it must be a duck \citep[p. 141]{SimpsonThisobjectprototypes2014}
+	\end{quote}
+	
+
+\note{
+	Ein Objekt in JavaScript ist dynamisch:
+
+	Zur Laufzeit können
+	\begin{itemize}
+		\item Properties hinzugefügt werden
+		\item Properties gelöscht werden
+		\item Referenzen geändert werden
+	\end{itemize}
+	
+	\skippingparagraph
+	
+	JavaScript Objekte sind jederzeit veränderbar
+	
+	Damit ist es schwierig den Typ eines Objekts zu bestimmen
+	
+	$\rightarrow$ Duck-Typing: 
+	\begin{quote}
+		if it looks like a duck, and it quacks like a duck, \\
+		it must be a duck \citep[p. 141]{SimpsonThisobjectprototypes2014}
+	\end{quote}
+}
+\end{frame}
+
+
+
+\section{Code-Reuse}
+
+\subsection{Method Borrowing}
+
+\begin{frame}[t] {Method Borrowing}{Wiederverwendung einer einzelnen Methode}
+	
+	Eine Methode eines Objekts kann explizit an ein anderes Objekt gebunden werden und darauf angewendet werden.
+	
+	\skippingparagraph
+	
+	Dazu gibt es die Funktionen \texttt{call()} und \texttt{apply()}
+	
+	\only<1>{
+		\insertcode{../codesnips/callBorrowing.js}
+		
+		\vfill
+	}
+	\only<2>{
+		\lstinputlisting[style=JSStyle, linebackgroundcolor={%
+			\btLstHL<2|handout:0>{2}%
+		}]{../codesnips/toArray.js}
+
+		Die Argumente eines Funktionsaufrufs sind in der Variable \texttt{arguments} verfügbar. 
+		
+		Das ist kein Array, sondern nur ein \emph{Array-like}-Objekt (d.~h. es besitzt einen Iterator)
+		
+		Per Method-Borrowing kann die Methode \texttt{Array.prototype.slice} darauf angewendet werden und so ein \emph{echtes} Array liefern.
+	}
+
+	\note{
+		\begin{itemize}
+			\item Das ist der eben besprochene Fall des explicit \texttt{this}-Binding
+			\item Dazu gibt es die Funktionen \texttt{call()} und \texttt{apply()} definiert auf \texttt{Function.prototype} und per Delegation auf Funktionen verfügbar.
+			\item Unterscheiden sich nur in der Art der Parameterübergabe
+			\item 
+			\item Beispiel: 
+		\end{itemize}
+	}
+
+\end{frame}
+
+%\begin{frame} {Method-Borrowing}{permanentes \texttt{this}-Binding}
+%	
+%	Mit \texttt{Function.prototype.bind()} kann Binding auch permanent gemacht werden
+%	
+%	\onslide<2>{Zusätzlich kann auch ein Teil der Funktionsargumente vorbelegt werden (Currying)}
+%	
+%	{\smaller 
+%		\lstinputlisting[style=JSStyle, linebackgroundcolor={%
+%			\btLstHL<1|handout:0>{12}%
+%			\btLstHL<2|handout:0>{16}%
+%		}]{codesnips/bindExample.js}
+%	}
+%
+%	\note{
+%		\begin{itemize}
+%			\item 
+%		\end{itemize}
+%	}
+%
+%\end{frame}
+
+\subsection{Delegation und Vererbung}
+
+\begin{frame} {Delegation als Vererbungsmechanismus}{Delegation entlang der Prototype-Chain}
+	
+	\begin{itemize}
+		\item Objekte bauen entlang ihrer Prototype-Chain aufeinander auf
+		\item Delegation ermöglicht klassenähnliche Vererbung in JavaScript
+		\item Gemeinsame Properties und Methoden werden auf dem Prototypen definiert
+		\item Bei der Zuweisungen auf gemeinsame Properties müssen die Regeln des Shadowing beachtet werden:
+		\begin{itemize}
+			\item Wert-Properties auf dem Prototypen werden bei Zuweisung verdeckt
+			\item Objektreferenzen auf dem Prototypen werden tatsächlich gemeinsam genutzt
+		\end{itemize}
+	\end{itemize}	
+
+	\note{
+		\begin{itemize}
+			\item Dies geht bei Objekterstellung über Konstruktorfunktionen besonders leicht durch Definition auf \texttt{ConstructorFn.prototype}
+			\item Auch bei Erzeugung mittels \texttt{Object.create()} lässt sich der Prototyp direkt angeben
+			\item 
+			\item Shadowing bezeichnet as Anlegen einer neuen Property bei schreibendem Zugriff
+			\item Wenn unten in der Chain eine Property geschrieben wird, so wird dort eine neue Property angelegt
+			\item Diese neue Property verdeckt die weiter oben in der Kette leigende Property des Prototypen
+		\end{itemize}
+	}
+
+\end{frame}
+
+%\begin{frame} {Vererbung}{live Code-Beispiel}
+%\smaller \smaller
+%\lstinputlisting[style=JSStyle, linebackgroundcolor={%
+%			\btLstHL<1|handout:0>{11,12, 26,27}%
+%		}]{../codesnips/protoCounterConstructor.js}
+%
+%\note{
+%	\begin{itemize}
+%		\item Code-Beispiel: \texttt{../codesnips/protoCounterConstructor.js}
+%	\end{itemize}
+%}
+%\end{frame}
+
+\begin{frame} {Vererbung}{Beispiel mit Shadowing}
+	
+	Objektgeflecht für einen Zähler, bei dem das Shadowing nicht korrekt beachtet wurde:
+	
+	{\centering
+		\includegraphics[width=0.8\textwidth]{../images/CounterPrototypeChain.png}
+	}
+
+	\note{
+		Code-Beispiel: \texttt{../codesnips/protoCounterConstructor.js}
+		\begin{itemize}
+			\item \texttt{.prototype} ist \emph{nicht} zu Verwechseln mit \texttt{\_\_proto\_\_} der Konstruktorfunktion
+			\item \texttt{Counter.counter} ist ein primitiver Wert. Daher wird der Wert verborgen (Shadowing)
+			\item \texttt{Counter.counterObj} ist eine Referenz auf ein weiteres (nicht dargestelltes) Objekt
+			\item Daher greifen alle abgeleiteten Objekte auf das gleiche Objekt zu und es erfolgt \emph{kein Shadowing}
+		\end{itemize}
+	}
+\end{frame}
+
+%\begin{frame} {Vererbung}{mehrstufige Hierarchien}
+%	
+%	Es ist natürlich möglich mehrstufige Vererbungs-/Delegations-Hierarchien aufzubauen
+%	
+%	Im Gegensatz zur \texttt{klassischen} Semantik ist der Aufruf von\texttt{super()} nicht ganz trivial
+%	
+%	In der Regel kann dabei auf permanentes Method-Borrowing mittels \texttt{bind()} zurückgegriffen werden.
+%
+%	\note{
+%		\begin{itemize}
+%			\item 
+%		\end{itemize}
+%	}
+%
+%\end{frame}
+
+\subsection{Mixins für orthogonalen Code-Resue}
+
+\begin{frame}[t] {Grenzen der Delegation}{Nicht alles ist eine Baumstruktur}
+
+\only<1,2,3>{
+	\begin{itemize}
+		\item Sprachen ohne Mehrfachvererbung bieten nur Baumstrukturen zur Vererbung
+		\item Baumstruktur ist nicht immer geeignet, um die Objekteigenschaften abzubilden
+		\item Schwierig damit \emph{orthogonale} Eigenschaften abzubilden
+	\end{itemize}
+}
+
+\only<2>{
+	\begin{itemize}
+		\item \emph{Mixins} zur orthogonalen Objekterweiterung
+	\end{itemize}
+	\includegraphics[width=\columnwidth]{./images/mcFlurry.png}
+	\source{\smaller \smaller Werbung aus \url{https://harburg-arcaden.de/my-mcflurry-bei-mcdonalds-mixen-sie-ihre-eigene-kreation/}}
+}
+
+\only<3>{
+	\begin{itemize}
+		\item \emph{Mixins} zur orthogonalen Objekterweiterung
+		\skippingparagraph
+		\item In JavaScript sehr einfach, da Objekte dynamisch sind
+		\item Properties eines Mixin-Objekts können auf ein Zielobjekt kopiert werden
+	\end{itemize}
+}
+\note{
+	\only<1>{
+	\begin{columns}
+		\column{0.7\textwidth}
+			\begin{itemize}
+				\item \emph{Mixins} zur \emph{orthogonalen} Objekterweiterung
+				\item in klassischen Sprachen eine \emph{abstrakte Subklasse}
+				\item Mixin-Klasse stützt sich auf Eigenschaften der Zielklasse
+			\end{itemize}
+			
+			\column{0.3\textwidth}
+				\includegraphics[width=\columnwidth]{../images/mixinAbstractSubClass.png}
+	\end{columns}
+	}
+	\only<2->{
+		\begin{itemize}
+			\item Klassische Sprachen bieten in der Regel nur \emph{ abstrakte Superklassen}
+			\item abstrakte \emph{Sub}klassen müssen unterstützt werden um Mixins anzuwenden
+			\item Objekte lassen sich nicht ohne Weiteres erweitern
+		\end{itemize}
+
+		\skippingparagraph
+
+		\begin{itemize}
+			\item In JavaScript sehr einfach, da Objekte dynamisch sind
+			\item Properties eines Mixin-Objekts können auf ein Zielobjekt kopiert werden
+		\end{itemize}
+	}
+}
+
+\end{frame}
+
+%\begin{frame} {Mixins für orthogonale Code-Wiederverwendung}{}
+%
+%\begin{columns}
+%	\column{0.7\textwidth}
+%		\begin{itemize}
+%			\item \emph{Mixins} zur \emph{orthogonalen} Objekterweiterung
+%			\item in klassischen Sprachen eine \emph{abstrakte Subklasse}
+%			\item Mixin-Klasse stützt sich auf Eigenschaften der Zielklasse
+%		\end{itemize}
+%		
+%		\column{0.3\textwidth}
+%		\onslide<2->{
+%			\includegraphics[width=\columnwidth]{../images/mixinAbstractSubClass.png}
+%		}
+%	\end{columns}
+%	\source{Grafik aus \citep{FagnaniRealMixinsJavaScript2015})}
+%	\onslide<2->{
+%	\begin{itemize}
+%		\item In JavaScript sehr einfach, da Objekte dynamisch sind
+%		\item Properties eines Mixin-Objekts können auf ein Zielobjekt kopiert werden
+%	\end{itemize}
+%
+%}
+%
+%\note{
+%	\begin{itemize}
+%		\item 
+%	\end{itemize}
+%}
+%
+%\end{frame}
+%
+
+
+\begin{frame} {Wiederverwendung durch Kopieren}{JavaScript-Objekte sind dynamisch}
+	\begin{itemize}
+		\item dynamischen Objekten können zur Laufzeit Properties hinzugefügt werden
+		\item Code-Wiederverwendung durch \emph{Kopieren} ist möglich
+		\item \texttt{Object.assign(target, ...sources)} kopiert \emph{eigene} Properties aus \texttt{sources} in das \texttt{target} Objekt
+		\item Code-Wiederverwendung ohne Prototype-Referenz
+		\item Bereits vorhandenen Properties gleichen Namens werden überschrieben
+	\end{itemize}
+
+%Dadurch können Codeteile wiederverwendet werden ohne eine Beziehung über die Prototype-Chain zwischen den Objekten herzustellen
+
+\note{
+	Es können meherere \texttt{source} Objekte angegeben werden
+	\begin{itemize}
+		\item Es wird lediglich eine flache Kopie erzeugt: d.~h. Objektreferenzen werden nicht dupliziert
+		\item Flache Kopie
+		\item Gleiches Problem wie bei Prototype-Chain und Objektreferenzen
+		\item 
+		\item es lässt sich relativ leicht eine \emph{extendDeep}-Funktion bauen
+		\item eine tiefe Kopie kann eine sehr teure Operation sein
+		\item leiber bleiben lassen
+	\end{itemize}
+	
+	Last wins bei Namensgleichheit
+	
+	==> Es kommt auf Reihenfolge der Argumente an
+}
+
+\end{frame}
+
+
+\begin{frame} {Mixins-Anwendung}{Code Beispiel}
+
+	\lstinputlisting[style=JSStyle, linebackgroundcolor={%
+				\btLstHL<1-|handout:0>{8,15}%
+			}]{codesnips/mixinAppplication.js}
+	
+
+	\note{
+		\begin{itemize}
+			\item 	Codebeispiel \texttt{../codesnips/simpleMixin.js}
+			\item 
+			\item Zunächst wird ein Objekt mit Prototyp \texttt{protoPerson} angelegt
+			\item 
+			\item Dann wird die \texttt{Developer} bzw. die \texttt{Freelancer} oder \texttt{Employee} Eigenschaft eingemixt
+		\end{itemize}
+	}
+
+\end{frame}
+
+\subsection{Functional Mixins}
+
+\begin{frame} {Functional Mixins}{Eine andere Sichtweise}
+	\onslide<1>{
+	\begin{itemize}
+		\item Mixins sind ein Amalgam aus mehreren Objekten
+		\item Mixin-Objekte sind abstrakt und für sich allein nutzlos
+		\item Kopierfunktion notwendig
+		\item Aufwändig, wenn weitere Parameter notwendig sind
+		\item Information Hiding bei einfacher Kopie schwierig
+	\end{itemize}
+	}
+	
+	\onslide<2>{
+	Neue Sichtweise: \\
+	Mixin als Funktion, die ein übergebenes Objekt erweitert
+	\begin{itemize}
+		\item Entspricht dem \emph{Decorator}-Pattern:\\
+		Objekte werden durch Anwenden einer Funktion erweitert
+		\item Es ist ein Funktionsaufruf, bei dem leicht Parameter übergeben werden können
+		\item Function Closure zur Datenkapselung
+	\end{itemize}
+	}
+	
+\note<1>{
+	\begin{itemize}
+		\item Mixins sind ein Amalgam aus mehreren Objekten
+		\item Mixin-Objekte sind abstrakt und für sich allein nutzlos
+		\item Kopierfunktion notwendig
+		\item Aufwändig, wenn weitere Parameter notwendig sind
+		\item Information Hiding bei einfacher Kopie schwierig
+	\end{itemize}
+}
+\note<2>{
+	Neue Sichtweise: \\
+	Mixin als Funktion, die ein übergebenes Objekt erweitert
+	\begin{itemize}
+		\item Entspricht dem \emph{Decorator}-Pattern:\\
+		Objekte werden durch Anwenden einer Funktion erweitert
+		\item Es ist ein Funktionsaufruf, bei dem leicht Parameter übergeben werden können
+		\item Function Closure zur Datenkapselung
+	\end{itemize}
+}
+
+\end{frame}
+
+\begin{frame} {Functional Mixins}{Ein einfaches Beispiel}
+	
+	\lstinputlisting[style=JSStyle, linebackgroundcolor={%
+			\btLstHL<1|handout:0>{17,18,19}%
+		}]{codesnips/simpleFunctionalMixins.js}
+
+	\note{
+	\smaller
+	Live Code-Beispiel: ../codesnips/simpleFunctionalMixin.js
+		\begin{itemize}
+			\item Das einfache Objekt \texttt{roundButton} wird mit weiterer Funktionalität versehen
+			\item Beim Dekorieren des ursprünglichen Objekt können leicht Parameter übergeben werden (einfacher Funktionsaufruf)
+			\item  Es ergibt sich eine ausdrucksstarke Syntax
+			\item Functional Mixins sind selber für die Anreicherung der Objekte zuständig
+			\begin{itemize}
+				\item Sind nicht von einer externen Kopierfunktion \texttt{Object.assign()} abhängig
+				\item können selber entscheiden, wie sie mit Namenskonflikten umgehen
+				\item können \emph{super-calls} nachbilden, wenn eine gleichnamige Funktionalität schon vorhanden ist
+				\item Da Funktionen eine Closure bilden können Mixin-spezifische Properties sehr leicht gekapselt werden
+			\end{itemize}
+		\end{itemize}
+	}
+
+\end{frame}
+
+
+
+\begin{frame}<1-2> {Functional Mixins in einer Factory}{Moderne ES6-Syntax ermöglicht Ausdrucksstärke}
+	
+	JavaScript ist funktional:
+	\begin{itemize}
+		\item Funktionen sind \emph{composable}, d.~h. sie lassen sich aufeinander Higher-Order-Function anwenden
+		\item \texttt{pipe(...fns)}-Funktion wendet alle übergebenen Funktionen auf ein Objekt an
+	\end{itemize}
+	
+	 Factories mit mehreren \emph{functional Mixins} ergeben sehr ausdrucksstarke Programme:
+	 \onslide<2->
+	{\smaller
+	\lstinputlisting[style=JSStyle, linebackgroundcolor={%
+			\btLstHL<2|handout:0>{8,9}%
+		}]{codesnips/es6FunctionalMixins.js}
+	}
+
+
+\note{
+	\only<1>{JavaScript ist funktional:
+		\begin{itemize}
+			\item Funktionen sind \emph{composable}, d.~h. sie lassen sich aufeinander Higher-Order-Function anwenden
+			\item \texttt{pipe(...fns)}-Funktion wendet alle übergebenen Funktionen auf ein Objekt an
+		\end{itemize}
+		
+		Factories mit mehreren \emph{functional Mixins} ergeben sehr ausdrucksstarke Programme:
+	}
+	\only<2>{
+		{\smaller
+			\lstinputlisting[style=JSStyle, linebackgroundcolor={%
+				\btLstHL<2|handout:0>{8,9}%
+			}]{codesnips/es6FunctionalMixins.js}
+		}
+		
+		Live Code-Beispiel: ../codesnips/dronesFactory.js
+	}
+}
+
+\end{frame}
+
+
+\section{Fazit}
+
+\begin{frame}<1-5>[t] {Fazit}{Kritik und Ausblick}
+	
+	Es gibt --wie in jeder Sprache-- keine einzig \emph{richtige} Methode zur Code-Wiederverwendung
+	
+	In jedem Einzelfall muss genau abgewogen werden, welches Mittel adäquat ist:
+
+	\begin{itemize}[<+->]
+	\item<1-> Method Borrowing \only <2->{ -- einfache Anwendung, enge Kopplung}
+		\only <1>{
+		\begin{itemize}
+			\item<1> sehr enge Kopplung
+			\item<1> Implementierungsdetails des Wirts-Objekts sind kritisch
+			\item<1> Wenn möglich Hilfsfunktionen lieber in Modulen implementieren und Objektreferenzen explizit übergeben
+		\end{itemize}}
+	\item<2-> Inheritance \only <3->{ -- gut geeignet für \emph{viele} ähnliche Objekte}
+		\only <2>{
+		\begin{itemize}
+			\item<2> sehr enge Kopplung
+			\item<2> starre Baum-Hierarchie
+		\end{itemize}}
+	\item<3-> Mixins \only <4->{ -- in JavaScript einfach zu implementieren}
+		\only <3>{
+		\begin{itemize}
+			\item<3> Kreuzabhängigkeiten -- Mixins hängen untereinander voneinander ab
+			\item<3> Konfliktpotential bei der Namensauflösung
+			\item<3> Kapselung privater Daten aufwändig
+		\end{itemize}}
+	\item<4-> Functional Mixins \only <5->{ -- sehr ausdrucksstarke Schreibweise}
+		\only <4>{
+		\begin{itemize}
+			\item<4> Kreuzabhängigkeiten -- Mixins hängen untereinander voneinander ab
+			\item<4> Kapselung privater Daten und Parametrierung einfach
+			\item<4> Es werden Kopien der zusätzlichen Properties erzeugt 
+			\item<4> elegante Schreibweise
+		\end{itemize}}
+	\end{itemize}	
+
+
+	\note{
+	Es gibt --wie in jeder Sprache-- keine einzig \emph{richtige} Methode zur Code-Wiederverwendung
+
+In jedem Einzelfall muss genau abgewogen werden, welches Mittel adäquat ist:
+
+	\only <1>{Method Borrowing \only <2->{ -- einfache Anwendung, enge Kopplung}
+		\begin{itemize}
+			\item<1> sehr enge Kopplung
+			\item<1> Implementierungsdetails des Wirts-Objekts sind kritisch
+			\item<1> Wenn möglich Hilfsfunktionen lieber in Modulen implementieren und Objektreferenzen explizit übergeben
+	\end{itemize}}
+	\only <2>{Inheritance \only <3->{ -- gut geeignet für \emph{viele} ähnliche Objekte}
+		\begin{itemize}
+			\item<2> sehr enge Kopplung
+			\item<2> starre Baum-Hierarchie
+	\end{itemize}}
+	\only <3>{Mixins \only <4->{ -- in JavaScript einfach zu implementieren}
+		\begin{itemize}
+			\item<3> Kreuzabhängigkeiten -- Mixins hängen untereinander voneinander ab
+			\item<3> Konfliktpotential bei der Namensauflösung
+			\item<3> Kapselung privater Daten aufwändig
+	\end{itemize}}
+	\only <4>{Functional Mixins \only <5->{ -- sehr ausdrucksstarke Schreibweise}
+		\begin{itemize}
+			\item<4> Kreuzabhängigkeiten -- Mixins hängen untereinander voneinander ab
+			\item<4> Kapselung privater Daten und Parametrierung einfach
+			\item<4> Es werden Kopien der zusätzlichen Properties erzeugt 
+			\item<4> elegante Schreibweise
+	\end{itemize}}
+	}
+
+\end{frame}
+
+\begin{frame}<1-2> {Es geht nicht ohne \ldots}{\only<2>{\ldots Katzenfotos}}
+	\smaller
+	\insertcode{codesnips/catCopter.js}
+	\onslide+<2->{
+	\begin{center}
+%		\includegraphics[height=.8\textheight]{images/cat_with_Logo_HannoverJs.png}
+		\includegraphics[height=.5\textheight]{images/catcopter.png}
+
+	\source{\smaller \smaller Cat-Copter aus \url{https://metro.co.uk/2015/10/01/man-who-turned-his-dead-cat-into-a-drone-now-plans-to-create-a-cow-helicopter-5416891/}}
+	\end{center}}
+
+	\note{
+		\begin{itemize}
+			\item Katzenfotos müssen in jedem Javascript Vortrag sein
+			\item 
+			\item Also bauen wir uns ein Katze
+		\end{itemize}
+	}
+
+\end{frame}
+
+
+%even if the frame is skipped, I want to have the paper in the bibliography:
+\nocite{international2018ecmascript}
+\nocite{CrollfreshlookJavaScript2011}
+\nocite{StefanovJavaScriptpatternsbuild2010}
+\nocite{ElliottFunctionalMixins2017}
+\nocite{ElliottProgrammingJavaScriptapplications2014}
+
+
+\begin{frame}{Literatur}
+\bibliographystyle{dinat}
+\smaller\smaller\smaller\bibliography{../literatur} 
+\end{frame}
+
+%\begin{frame}{Geht's raus, schreibt's guten Code!}
+%	\centering
+%	\includegraphics*[height = 0.85\textheight]{images/code_quality_2.png}
+%	\source{\url{http://xkcd.com/1695/}}
+%\end{frame}
+
+\end{document}
+
+

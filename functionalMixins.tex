@@ -1,0 +1,56 @@
+% !TeX encoding = UTF-8
+% !TeX spellcheck = de_DE
+% !TeX root = ./mainDoc.tex
+
+\section{Functional Mixins}
+
+Im vorherigen Kapitel wurde die Code-Wiederverwendung in JavaScript hauptsächlich durch die klassische Brille in Anlehnung an Vererbungstechniken betrachtet. Über die Techniken, Vererbung per Delegation und per automatischer Kopie zu realisieren, wurde die Idee von Mixins entwickelt, die es ermöglichen aus dem streng hierarchischen Korsett der Vererbung auszubrechen und damit eine flexiblere Möglichkeit der Objektanreicherung bieten. Es wurde gezeigt, dass durch die dynamischen Objekte in JavaScript eine Verwendung von Mixins deutlich einfacher ist als in klassischen Sprachen, die dafür spezielle Mechanismen in der Klassendefinition unterstützen müssen.
+
+Von Detailfragen, wie der Konfliktauflösung bei namensgleichen Properties, abgesehen ist in JavaScript ein Mixin eine simple Erweiterung des Empfängerobjekts zur Laufzeit. Um ein Objekt-Mixin, wie im vorigen Kapitel beschrieben anzuwenden, wird zunächst ein Mixin-Objekt erzeugt, dessen Eigenschaften mit einer mehr oder weniger ausgefuchsten Kopierfunktion auf das Empfängerobjekt übertragen werden. Das Mixin-Objekt ist für sich selbst genommen jedoch meist nutzlos, da es lediglich abstrakte Methoden zur Verfügung stellt, die auf bestimmte Properties des Empfängerobjekts angewiesen sind. Es liegt daher die Frage nahe, ob es notwendig ist erst zwei Objekte zu erstellen, die mittels einer speziellen Funktion zusammengeführt werden müssen.
+
+In seinem viel beachteten Blogpost "`A fresh look at Javascript Mixins"' (\citep{CrollfreshlookJavaScript2011}) stellt Angus Croll genau diese Frage und schlägt vor, Mixins eher als Funktion denn als abstraktes Objekt aufzufassen. Ein solches \emph{funktionales Mixin} ist eine Funktion, die auf das zu erweiternden Objekt angewendet wird, um es zielgerichtet zu erweitern. Eric Elliot greift dieses Konzept viele Jahre später wieder auf und erweitert es (\citep{ElliottFunctionalMixins2017}). Er entwickelt Mixin-Funktionen, die im Sinne der funktionalen Programmierung \emph{composable}, also zusammensetzbar hinereinander ausführbar sind und vergleicht diese funktionalen Mixins mit Arbeitern an einem Fließband, die nacheinander Properties und Verhalten zu einem Objekt hinzufügen. Diese Art der Betrachtung entspricht in wesentlichen Belangen dem sogenannten \emph{Decorator}-Pattern aus \citep[p. 169]{GoF}, das als flexible Alternative zu Subklassenbeziehungen empfohlen wird. Zusammen mit einigen, seit ES6 möglichen syntaktischen Verfeinerungen wird sich zeigen, dass funktionale Mixins als Decorators eine sehr übersichtliche Syntax ermöglichen, die sehr ausdrucksstark und leicht lesbar ist.
+
+\skippingparagraph
+Bevor Elliot's snytaktischen ES6-Erweiterungen vorgestellt werden, soll hier das ursprüngliche Beispiel von Croll gezeigt werden, da einige Besonderheiten hier im direkten Vergleich zu den bisherigen Objekt-Mixins sehr gut zutage treten.
+
+Für eine Benutzeroberfläche sollen runde Knöpfe erstellt werden. Dazu werden funktionale Mixins definiert, die ein Objekt mit den "`Rundheits"'- bzw. "`Knopfheits"'-Eigenschaften versehen.
+
+\insertcode{codesnips/simpleFunctionalMixin.js}{Erstellung eines runden Buttons durch Anwendung zweier funktionaler Mixins. (Beispiel frei nach \citep{CrollfreshlookJavaScript2011})}
+
+An diesem einfachen Beispiel in Listing \ref{codesnips/simpleFunctionalMixin.js} kann man sehen, wie leicht sich die funktionalen Mixins definieren und anwenden lassen. Als Ausgangspunkt wird ein sehr einfaches Objekt erstellt, das sogar leer sein kann. Auf dieses Objekt werden nacheinander die notwendigen funktionalen Mixins angewendet, um es mit der gewünschten Funktionalität zu versehen. Es wird mit dieser Funktionalität \emph{dekoriert}. Dazu wird die Mixin-Funktion mit einem expliziten \texttt{this}-Binding über \texttt{.call()} aufgerufen, so dass sie ihre eigenen öffentlichen Funktionen an das übergebene Objekt anhängen kann.
+
+Für künftige Versionen von ECMAScript sind Bestrebungen im Gange solche Decorators mit einer speziellen @-Syntax in die Sprache aufzunehmen. Die Anwendung würde damit vereinfacht werden zu:
+\insertcode{codesnips/functionalDecorators.js}{Anwendung von functional Mixins als Decorators in einer möglichen künftigen ES.next-Syntax}
+
+Neben der gefälligen und gut lesbaren Schreibweise haben functional Mixins noch den weiteren großen Vorteil der einfachen Kapselung interner Daten.
+Wie in der letzten Zeile von Listing \ref{codesnips/simpleFunctionalMixin.js} zu sehen ist, wird \texttt{\_radius} nicht im Empfängerobjekt des Mixins sichtbar. 
+Dies ist möglich, da eine Funktion immer eine Closure bildet, in der die innerhalb definierten Daten privat bleiben. Diese Closure bleibt auch erhalten, wenn die Funktion nicht mehr ausgeführt wird, aber noch andere Properties (in diesem Fall die Mixin-Verhaltensfunktionen) darauf zugreifen. Private Daten eines Mixins können so einfach im Scope der Mixin-Funktion definiert werden und sind für alle Verhaltensfunktionen dieses Mixins zugreifbar, während sie nach außen nicht sichtbar sind. Damit wird die Oberfläche des Mixins im Gegensatz zu Objekt-Mixins, bei denen auch alle internen Properties des Mixins auf dem Empfängerobjekt sichtbar wurden deutlich verkleinert.
+
+Weiterhin lassen sich beim Mixin-Funktionsaufruf sehr einfach weitere Parameter an die funktionalen Mixins übergeben, die als Optionen für die Funktionalität dienen. Im gezeigten Fall wird so der initiale Radius und die an den Button gebundene Funktion übergeben. 
+
+Da die funktionalen Mixins selber für die Anreicherung der Empfängerobjekte zuständig sind und sich, im Gegensatz zu den Objekt-Mixins, nicht auf eine einheitliche Kopierfunktion stützen, kann für jedes Mixin individuell definiert werden, wie mit Namenskonflikten umgegangen wird. Es ist zum Beispiel problemlos möglich vor dem Einfügen des eigenen Verhaltens zu prüfen, ob das Empfängerobjekt schon eine Property gleichen Namens hat. In einem solchen Fall kann entschieden werden, ob diese Property überschrieben werden soll, oder ob eine Kombination der alten mit der neuen Funktionalität stattfinden soll. Ein Beispiel für solch eine Konfliktauflösung ist in Listing \ref{codesnips/mixinSupercall.js} skizziert.
+
+\insertcode{codesnips/mixinSupercall.js}{Die funktionalen Mixins benutzten den Rückgabewert der schon vorhandenen \texttt{identify}-Methode als Eingabe der eigenen, überschreibenden \texttt{identify}-Methode.}
+
+Ein Nachteil der funktionalen Mixins gegenüber den Objekt-Mixins soll hier nicht unerwähnt bleiben: In der vorgestellten Variante bekommt jedes dekorierte Objekt eine eigene Kopie der Mixin-Verhaltensfunktionen und benötigt damit mehr Speicher als die Objekt-Mixins, bei denen lediglich eine Referenz auf die Funktionen des Mixin-Objekts in den Empfängerobjekten gespeichert werden. 
+
+Crol zeigt in seinem Blogpost eine Möglichkeit auf, wie die Verhaltensfunktionen ähnlich der privaten Daten in eine Closure gekapselt und damit gecached werden können. Sie werden dann nicht mehr für jedes Empfängerobjekt geklont, haben im Gegenzug aber keinen Zugriff mehr auf eine Mixin-Closure, zur Kapselung privater Daten. Es ist daher im Einzelfall abzuwägen, ob die Verhaltensfunktionen in einer Closure gecached werden sollen, um Seicherplatz zu sparen, oder ob die Daten der Mixin-Logik in einer Closure gekapselt werden sollen, um sie privat zu halten.
+
+\skippingparagraph
+Nach dieser ersten Einführung in die Idee der funktionalen Mixins soll die Idee einer Fließband-Fertigung von Objekten mit bestimmten Eigenschaften aufgegriffen werden. In \citep{ElliottJavaScriptFactoryFunctions2017} beschreibt Eric eine sehr elegante Methode, wie sich Factory-Functions zusammen mit funktionalen Mixins kombinieren lassen. Damit wird auch ohne ES.next-Decorators eine extrem ausdrucksstarke und lesbare Syntax geschaffen, mit der sich ohne großen Aufwand Objekte mit den passenden Mixin-Eigenschaften erstellen lassen.
+
+Eine dazu notwendige Hilfsfunktion höherer Ordnung ist \texttt{pipe}. Sie ist in Listing \ref{codesnips/pipe.js} angegeben:
+
+\insertcode{codesnips/pipe.js}{Die Hilfsfunktion Pipe zur Hintereinanderschaltung mehrerer Funktionen}
+
+Die Funktion \texttt{pipe} nimmt eine Liste von Funktionen \texttt{(...fns)} und gibt selber eine Funktion zurück, die einen Parameter \texttt{x} nimmt. Der Aufruf dieser zurückgegebenen Funktion mit einem Parameter liefert als Ergebnis die verkettete Anwendung der übergebenen Funktionen auf diesen Parameter. Im angegebenen Beispiel liefert \texttt{add1AndDouble(20)} das Ergebnis \texttt{double(add1(20)) = (((20)+1)*2) = 42}.
+
+Mit der Hilfsfunktion \texttt{pipe} lassen sich funktionale Mixins zu einer "`Gesamtfunktion"' zusammenfassen, die sehr gut in einer Factory verwendet werden kann.
+Im Beispiel in Listing \ref{codesnips/dronesFactory.js} wird deutlich, wie ausdrucksstark und gut lesbar sich auf diese Art neue Objekte erzeugen lassen:
+
+\skippingparagraph
+
+\insertcode{codesnips/dronesFactory.js}{Ausdrucksstarke Syntax zur Objekterzeugung mit verketteten funktionalen Mixins in einer Faxctory. (Beispiel aus \citep{ElliottJavaScriptFactoryFunctions2017})}
+
+Im Listing \ref{codesnips/dronesFactory.js} wird der Vorteil von funktionalen Mixins gegenüber Objekt-Mixins deutlich: Da es sich um normale Funktionen handelt, die auf ein übergebenes Objekt wirken, lassen sie sich zu einer Gesamtfunktion kombinieren, der sich immer noch leicht Parameter als Optionen übergeben lassen. Die Behandlung von überschriebenen Properties kann in jedem Mixin individuell geregelt werden. Die Anwendung ist dadurch extrem einfach, und Implementierungsdetails der Mixins bleiben in den durch die Mixin-Funktionen gebildeten Closures gekapselt. 
+
